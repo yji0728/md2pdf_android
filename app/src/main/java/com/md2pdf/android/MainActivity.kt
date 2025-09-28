@@ -160,27 +160,110 @@ class MainActivity : AppCompatActivity() {
             // Read markdown content
             val markdownContent = readFileContent(uri)
             
+            if (markdownContent.isBlank()) {
+                return false
+            }
+            
             // Parse markdown to HTML
             val parser = Parser.builder().build()
             val document = parser.parse(markdownContent)
             val htmlRenderer = HtmlRenderer.builder().build()
             val htmlContent = htmlRenderer.render(document)
             
-            // Create full HTML document
+            // Create full HTML document with enhanced styling
             val fullHtml = """
                 <!DOCTYPE html>
                 <html>
                 <head>
                     <meta charset="UTF-8">
+                    <title>$fileName</title>
                     <style>
-                        body { font-family: Arial, sans-serif; margin: 40px; line-height: 1.6; }
-                        h1, h2, h3, h4, h5, h6 { color: #333; }
-                        code { background-color: #f4f4f4; padding: 2px 4px; border-radius: 3px; }
-                        pre { background-color: #f4f4f4; padding: 10px; border-radius: 5px; overflow-x: auto; }
-                        blockquote { border-left: 4px solid #ddd; margin: 0; padding-left: 20px; color: #666; }
-                        table { border-collapse: collapse; width: 100%; }
-                        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-                        th { background-color: #f2f2f2; }
+                        body { 
+                            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+                            margin: 40px; 
+                            line-height: 1.6; 
+                            color: #333;
+                            font-size: 14px;
+                        }
+                        h1, h2, h3, h4, h5, h6 { 
+                            color: #2c3e50; 
+                            margin-top: 24px;
+                            margin-bottom: 16px;
+                        }
+                        h1 { font-size: 28px; border-bottom: 2px solid #3498db; padding-bottom: 8px; }
+                        h2 { font-size: 24px; border-bottom: 1px solid #bdc3c7; padding-bottom: 4px; }
+                        h3 { font-size: 20px; }
+                        h4 { font-size: 18px; }
+                        h5 { font-size: 16px; }
+                        h6 { font-size: 14px; }
+                        p { margin-bottom: 16px; }
+                        code { 
+                            background-color: #f8f9fa; 
+                            padding: 2px 6px; 
+                            border-radius: 3px; 
+                            font-family: 'Consolas', 'Monaco', monospace;
+                            font-size: 13px;
+                            color: #e74c3c;
+                        }
+                        pre { 
+                            background-color: #f8f9fa; 
+                            padding: 16px; 
+                            border-radius: 6px; 
+                            overflow-x: auto;
+                            border: 1px solid #e1e8ed;
+                            margin: 16px 0;
+                        }
+                        pre code {
+                            background-color: transparent;
+                            padding: 0;
+                            color: #333;
+                        }
+                        blockquote { 
+                            border-left: 4px solid #3498db; 
+                            margin: 16px 0; 
+                            padding-left: 20px; 
+                            color: #7f8c8d;
+                            font-style: italic;
+                        }
+                        table { 
+                            border-collapse: collapse; 
+                            width: 100%; 
+                            margin: 16px 0;
+                            font-size: 13px;
+                        }
+                        th, td { 
+                            border: 1px solid #bdc3c7; 
+                            padding: 10px 12px; 
+                            text-align: left; 
+                        }
+                        th { 
+                            background-color: #ecf0f1; 
+                            font-weight: 600;
+                            color: #2c3e50;
+                        }
+                        tr:nth-child(even) {
+                            background-color: #f8f9fa;
+                        }
+                        ul, ol {
+                            padding-left: 24px;
+                            margin: 16px 0;
+                        }
+                        li {
+                            margin: 4px 0;
+                        }
+                        a {
+                            color: #3498db;
+                            text-decoration: none;
+                        }
+                        a:hover {
+                            text-decoration: underline;
+                        }
+                        strong {
+                            color: #2c3e50;
+                        }
+                        em {
+                            color: #7f8c8d;
+                        }
                     </style>
                 </head>
                 <body>

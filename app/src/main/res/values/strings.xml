@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">MD to PDF Converter</string>
+    <string name="select_markdown_file">Select Markdown File</string>
+    <string name="convert_to_pdf">Convert to PDF</string>
+    <string name="conversion_successful">PDF generated successfully!</string>
+    <string name="conversion_failed">Failed to convert file</string>
+    <string name="no_file_selected">Please select a markdown file first</string>
+    <string name="file_selected">File selected: %1$s</string>
+    <string name="converting">Converting...</string>
+    <string name="permission_required">Storage permission is required to access files</string>
+</resources>

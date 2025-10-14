@@ -10,7 +10,12 @@ md2pdf_android/
 │   └── src/main/
 │       ├── AndroidManifest.xml     # App manifest with permissions
 │       ├── java/com/md2pdf/android/
-│       │   └── MainActivity.kt     # Main application logic
+│       │   ├── MainActivity.kt     # Main application logic
+│       │   └── util/               # Utility classes package
+│       │       ├── MarkdownConverter.kt  # Markdown to HTML conversion
+│       │       ├── PdfGenerator.kt       # PDF generation
+│       │       ├── FileValidator.kt      # File validation logic
+│       │       └── FileUtils.kt          # File system utilities
 │       └── res/
 │           ├── drawable/           # Vector drawables and icons
 │           ├── layout/
@@ -32,10 +37,14 @@ md2pdf_android/
 ## Architecture Overview
 
 ### Design Pattern
-The app follows a simplified MVP (Model-View-Presenter) pattern:
+The app follows a modular architecture with clear separation of concerns:
 - **View**: `activity_main.xml` and UI components
-- **Presenter**: `MainActivity.kt` handles business logic
-- **Model**: File system operations and conversion logic
+- **Controller**: `MainActivity.kt` handles UI logic and orchestration
+- **Utilities**: Specialized utility classes for specific operations
+  - `MarkdownConverter`: Markdown processing logic
+  - `PdfGenerator`: PDF generation logic
+  - `FileValidator`: Input validation logic
+  - `FileUtils`: File system operations
 
 ### Key Components
 
@@ -44,16 +53,59 @@ The app follows a simplified MVP (Model-View-Presenter) pattern:
 - UI state management
 - Permission handling
 - File selection using Storage Access Framework
-- Asynchronous conversion operations
+- Coordinating conversion workflow
 - Error handling and user feedback
 
 **Key Methods:**
 - `checkPermissionsAndOpenFilePicker()`: Handles storage permissions
+- `handleFileSelection()`: Validates and processes selected files
 - `openFilePicker()`: Launches document picker using ActivityResultContracts
-- `convertToPdf()`: Orchestrates the conversion process
-- `performConversion()`: Core conversion logic (Markdown → HTML → PDF)
+- `convertToPdf()`: Orchestrates the conversion process with pre-checks
+- `performConversion()`: Core conversion workflow coordination
 
-#### 2. UI Components
+#### 2. MarkdownConverter (Utility Class)
+**Responsibilities:**
+- Parse Markdown content using CommonMark with GFM tables extension
+- Generate HTML with comprehensive CSS styling
+- Provide consistent styling for all PDF outputs
+
+**Key Methods:**
+- `convertToHtml()`: Converts markdown to fully styled HTML document
+- `createStyledHtml()`: Wraps content in HTML structure
+- `getStyleSheet()`: Returns comprehensive CSS styling
+
+#### 3. PdfGenerator (Utility Class)
+**Responsibilities:**
+- Convert HTML content to PDF format
+- Handle file output operations
+- Verify successful PDF generation
+
+**Key Methods:**
+- `generatePdf()`: Converts HTML to PDF and saves to file
+
+#### 4. FileValidator (Utility Class)
+**Responsibilities:**
+- Validate file size and readability
+- Read file content safely
+- Extract file metadata
+
+**Key Methods:**
+- `validateFile()`: Comprehensive file validation
+- `readFileContent()`: Safe file reading with error handling
+- `getFileName()`: Extract display name from URI
+
+#### 5. FileUtils (Utility Class)
+**Responsibilities:**
+- File system operations
+- Storage availability checks
+- Output file creation with timestamps
+
+**Key Methods:**
+- `createOutputFile()`: Generate timestamped output files
+- `isExternalStorageWritable()`: Check storage state
+- `hasEnoughSpace()`: Verify available storage space
+
+#### 6. UI Components
 **Layout Structure:**
 - Title header
 - File selection button
@@ -97,21 +149,42 @@ Handles multiple storage permissions:
 
 ### Conversion Pipeline
 
-1. **File Reading**: 
-   - Uses ContentResolver to read from URI
-   - Handles various file sources (local, cloud, etc.)
+1. **File Selection & Validation**: 
+   - User selects file via Storage Access Framework
+   - FileValidator checks file size (max 10MB)
+   - FileValidator verifies file is readable
+   - Display name extracted and shown to user
 
-2. **Markdown Parsing**:
-   - CommonMark parser for standard Markdown
-   - Extensible for additional features (tables, etc.)
+2. **Pre-conversion Checks**:
+   - Storage availability validation
+   - Available space verification (min 10MB required)
+   - User feedback if checks fail
 
-3. **HTML Generation**:
-   - Converts parsed Markdown to HTML
-   - Adds comprehensive CSS styling
+3. **Markdown Parsing**:
+   - CommonMark parser with GFM tables extension
+   - Converts Markdown to HTML structure
+   - Extensible for additional features
 
-4. **PDF Generation**:
+4. **HTML Generation**:
+   - Wraps content in full HTML document
+   - Adds comprehensive CSS styling:
+     - Professional typography (Segoe UI font family)
+     - Enhanced table styling (blue headers, alternating rows, hover effects)
+     - Improved blockquotes (background color, rounded corners)
+     - Code block styling (syntax-friendly colors)
+     - Proper spacing and margins throughout
+     - Link styling and hover effects
+
+5. **PDF Generation**:
    - iText7 HTML to PDF conversion
    - Maintains formatting and styling
+   - Saves to Downloads with timestamp
+   - Verifies successful creation
+
+6. **Result Handling**:
+   - Success: Shows file path to user
+   - Failure: Provides specific error message
+   - Updates UI state appropriately
 
 ## Dependencies
 
@@ -151,13 +224,28 @@ implementation 'com.itextpdf:itext7-core:7.2.5'
 ## Styling and Theming
 
 ### CSS Styling for PDF
-The generated HTML includes comprehensive CSS:
+The generated HTML includes comprehensive CSS with enhancements:
 - Professional typography (Segoe UI font family)
-- Proper spacing and margins
-- Syntax highlighting for code blocks
-- Table styling with alternating row colors
-- Header styling with underlines
-- Blockquote styling with left border
+- Enhanced table styling:
+  - Blue headers with white text
+  - Alternating row colors for readability
+  - Hover effects on table rows
+  - Proper borders and padding
+- Improved blockquote styling:
+  - Background color (#f8f9fa)
+  - Rounded corners
+  - Enhanced left border
+  - Better padding
+- Code block styling:
+  - Light background for readability
+  - Monospace font family
+  - Inline code with red accent
+  - Block code with neutral colors
+- Header hierarchy with underlines
+- Proper spacing and margins throughout
+- Link styling with hover effects
+- Horizontal rule styling
+- Image responsive sizing
 
 ### Material Design Theme
 - Primary color: `#FF6200EE`
@@ -170,6 +258,23 @@ The generated HTML includes comprehensive CSS:
 - Try-catch blocks around all major operations
 - Specific error messages for different failure types
 - UI feedback for all error states
+- Sealed class for conversion results (Success/Failure)
+
+### Validation Errors
+- **File too large**: Maximum 10MB limit enforced
+- **File unreadable**: IO error handling
+- **Empty file**: Early detection and user notification
+- **Invalid format**: Markdown parsing error messages
+
+### Storage Errors
+- **Storage unavailable**: External storage state check
+- **Insufficient space**: Minimum 10MB required
+- **Write failure**: Permission or hardware issues
+
+### Conversion Errors
+- **Markdown parsing failed**: Invalid syntax or unsupported features
+- **PDF generation failed**: iText7 errors or resource issues
+- **Unexpected errors**: Generic error handling with stack traces
 
 ### User Feedback
 - Toast messages for quick feedback
@@ -221,20 +326,34 @@ The generated HTML includes comprehensive CSS:
 ## Future Enhancements
 
 ### Potential Features
-1. **Custom Styling**: User-selectable PDF themes
-2. **Batch Processing**: Multiple file conversion
+1. **Custom Styling**: User-selectable PDF themes and color schemes
+2. **Batch Processing**: Multiple file conversion in one operation
 3. **Cloud Integration**: Google Drive, Dropbox support
-4. **Preview Mode**: Show HTML before PDF generation
-5. **Settings Screen**: Customizable options
-6. **Image Support**: Embed images in PDF
-7. **Export Options**: Different PDF page sizes
+4. **Preview Mode**: Show rendered HTML before PDF generation
+5. **Settings Screen**: Customizable options (page size, margins, fonts)
+6. **Image Support**: Embed local and remote images in PDF
+7. **Export Options**: Different PDF page sizes (A4, Letter, etc.)
+8. **Syntax Highlighting**: Enhanced code block rendering
+9. **Table of Contents**: Auto-generated TOC from headers
+10. **Bookmarks**: PDF bookmarks from markdown headers
 
 ### Technical Improvements
-1. **Unit Tests**: Comprehensive test coverage
-2. **Integration Tests**: End-to-end testing
+1. **Unit Tests**: Comprehensive test coverage for utility classes
+2. **Integration Tests**: End-to-end testing with real files
 3. **CI/CD Pipeline**: Automated builds and releases
-4. **Performance Metrics**: Conversion time tracking
-5. **Error Analytics**: Crash reporting integration
+4. **Performance Metrics**: Conversion time tracking and optimization
+5. **Error Analytics**: Crash reporting integration (e.g., Firebase Crashlytics)
+6. **Memory Optimization**: Streaming for large files
+7. **Caching**: Cache parsed markdown for quick regeneration
+8. **Background Service**: Convert files without keeping app open
+
+### Code Quality Enhancements
+1. **Dependency Injection**: Use Hilt or Koin for better testability
+2. **Repository Pattern**: Abstract data layer for easier testing
+3. **ViewModel**: Better separation of UI and business logic
+4. **LiveData/StateFlow**: Reactive state management
+5. **Room Database**: Store conversion history
+6. **WorkManager**: Reliable background processing
 
 ## Build Instructions
 

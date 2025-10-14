@@ -5,11 +5,16 @@ An Android application that converts Markdown files to PDF format using modern A
 ## Features
 
 - **File Selection**: Browse and select Markdown files from device storage
+- **File Validation**: Validates file size (max 10MB) and readability before conversion
 - **Markdown Parsing**: Converts Markdown syntax to formatted HTML using CommonMark library
+- **GFM Tables Support**: Full support for GitHub Flavored Markdown tables
 - **PDF Generation**: Creates professional-looking PDF documents using iText7
+- **Enhanced Styling**: Improved CSS styling with better table formatting, blockquotes, and typography
 - **Material Design**: Clean, modern UI following Material Design guidelines
-- **Error Handling**: Comprehensive error handling with user feedback
+- **Comprehensive Error Handling**: Detailed error messages for different failure scenarios
+- **Storage Validation**: Checks storage availability and space before conversion
 - **Permission Management**: Handles storage permissions gracefully
+- **Modular Architecture**: Clean separation of concerns with utility classes
 
 ## Screenshots
 
@@ -17,7 +22,7 @@ The app features a simple and intuitive interface:
 - Main screen with file selection button
 - Convert button that becomes enabled after file selection
 - Progress indicator during conversion
-- Success/error feedback messages
+- Success/error feedback messages with detailed information
 
 ## Technical Details
 
@@ -26,11 +31,13 @@ The app features a simple and intuitive interface:
 - **UI Framework**: Android Views with View Binding
 - **Async Operations**: Kotlin Coroutines for background processing
 - **File Access**: Android Storage Access Framework (SAF)
+- **Design Pattern**: Modular architecture with utility classes
 
 ### Dependencies
 - **AndroidX Core**: Core Android components
 - **Material Components**: Material Design UI components
 - **CommonMark**: Markdown parsing library (org.commonmark:commonmark:0.21.0)
+- **GFM Tables Extension**: GitHub Flavored Markdown tables (org.commonmark:commonmark-ext-gfm-tables:0.21.0)
 - **iText7**: PDF generation library (com.itextpdf:itext7-core:7.2.5)
 
 ### Key Components
@@ -38,15 +45,32 @@ The app features a simple and intuitive interface:
 1. **MainActivity.kt**: Main application logic
    - File picker implementation using ActivityResultContracts
    - Permission handling for storage access
-   - Markdown to HTML conversion
-   - HTML to PDF generation
    - UI state management
+   - Coordinating conversion workflow
 
-2. **Layout**: Clean Material Design interface
+2. **Utility Classes** (in `com.md2pdf.android.util` package):
+   - **MarkdownConverter**: Handles Markdown to HTML conversion with GFM tables support
+   - **PdfGenerator**: Manages PDF file generation from HTML
+   - **FileValidator**: Validates files before conversion (size, readability)
+   - **FileUtils**: File system operations and storage checks
+
+3. **Layout**: Clean Material Design interface
    - File selection button
    - Conversion button with enabled/disabled states
    - Progress indicator
-   - Status messages
+   - Status messages with detailed feedback
+
+## Code Enhancements
+
+### What's New
+
+1. **Modular Architecture**: Code refactored into separate utility classes for better maintainability
+2. **File Validation**: Files are validated before conversion to prevent errors
+3. **Enhanced Error Handling**: Specific error messages for different failure scenarios
+4. **Storage Checks**: Validates storage availability and space before conversion
+5. **Improved Styling**: Better CSS for tables, blockquotes, and overall typography
+6. **GFM Tables**: Full support for GitHub Flavored Markdown tables with enhanced styling
+7. **Better Feedback**: Users receive detailed information about conversion success or failure
 
 ## Build Instructions
 
@@ -98,8 +122,10 @@ The app supports standard CommonMark syntax including:
 - Lists (ordered and unordered)
 - Links
 - Code blocks and inline code
-- Blockquotes
-- Tables (with GFM extension)
+- Blockquotes (with enhanced styling)
+- Tables (with GFM extension and enhanced styling)
+- Horizontal rules
+- Strikethrough (when supported by parser)
 
 ## File Output
 
@@ -138,11 +164,14 @@ The app requires the following permissions:
 - Includes comprehensive permission management
 
 ### Future Enhancements
-- Custom PDF styling options
+- Custom PDF styling options (user-selectable themes)
 - Batch conversion support
 - Cloud storage integration
 - Markdown preview before conversion
 - Custom output directory selection
+- Image embedding support
+- Syntax highlighting for code blocks
+- Export to different page sizes
 
 ## License
 
